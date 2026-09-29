@@ -57,13 +57,23 @@ Sub-steps, each committed separately as it lands:
        (real `section`/heading semantics, not styled `div`s), oversized
        (72px) letter treatment and fade-gradient behind the sticky heading,
        matching the prototype's exaggerated scale per explicit direction.
-5. [ ] **The accessible A-Z rail.** Revised decision: the rail is in scope as
-       a main feature (overrides the earlier recommendation to cut it for
-       scale reasons). Being built as a real control, not a copy of the
-       prototype's mouse/touch-only version — real focusable buttons,
-       keyboard navigation (arrows + Enter/Space), drag-to-scrub layered on
-       top as a progressive enhancement rather than a replacement, disabled
-       letters marked `aria-disabled`, respects `prefers-reduced-motion`.
+5. [x] **The accessible A-Z rail**, in `AlphabetRail.tsx`. Revised decision:
+       the rail is in scope as a main feature (overrides the earlier
+       recommendation to cut it for scale reasons). Built as a real control,
+       not a copy of the prototype's mouse/touch-only version — real
+       focusable `<button>`s (native `disabled` for empty letters, not just
+       `aria-disabled`), arrow-key roving with Home/End, drag-to-scrub
+       layered on top as a progressive enhancement, `navigator.vibrate()`
+       haptics (no-op on iOS, real on Android — see `NOTES.md` for why full
+       iOS haptics aren't feasible), `prefers-reduced-motion` respected.
+       Ports the prototype's actual bump mechanism (SVG blob + label
+       overlay, eased glide, `.tab`/`.disabled`/`.hidden-by-bump`/`.stacked`
+       class hooks) and its `IntersectionObserver` scroll-spy, rather than a
+       simplified stand-in. Several real bugs found and fixed along the way
+       (see commit `6f724db` for the full list) — notably native
+       `scrollIntoView(smooth)` not animating reliably, and
+       `preventDefault()` on `pointerdown` silently breaking real mouse
+       clicks by suppressing the browser's own click event.
 6. [ ] Wire everything to real filtered data end-to-end, empty state,
        motion/reduced-motion pass across all of the above.
 
