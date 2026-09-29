@@ -26,6 +26,12 @@ const prefersReducedMotion = () =>
   typeof window !== "undefined" &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+// easeOutQuint decelerates so aggressively that ~97% of the distance is
+// covered by half the nominal duration — the remaining "tail" is
+// sub-pixel and invisible, so increasing duration barely changes what's
+// actually seen. easeOutCubic distributes the motion more evenly across
+// the full duration, so a longer duration is actually felt throughout
+// rather than mostly wasted on an imperceptible tail.
 const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 
 // Native `scrollIntoView({behavior: "smooth"})` is unreliable on iOS
@@ -39,7 +45,7 @@ const animateScrollTo = (targetY: number) => {
   if (scrollAnimationHandle) cancelAnimationFrame(scrollAnimationHandle);
   const startY = window.scrollY;
   const distance = targetY - startY;
-  const duration = Math.min(600, Math.max(200, Math.abs(distance) * 0.3));
+  const duration = Math.min(1200, Math.max(400, Math.abs(distance) * 0.55));
   const start = performance.now();
 
   const tick = (now: number) => {
