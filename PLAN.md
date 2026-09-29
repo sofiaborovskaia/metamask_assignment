@@ -13,6 +13,20 @@ standing instruction.
 
 ---
 
+## Decisions log
+
+Record scope/product decisions here as they're made, not reconstructed later
+for `NOTES.md`.
+
+- **Design target is mobile; desktop is width-constrained, not a separate
+  layout.** The build is designed and tested primarily at mobile widths
+  (matching the prototype's phone-frame reference). Desktop doesn't get its
+  own layout (no multi-column, no different information density) — it's the
+  same mobile-oriented design centered with a `max-w-*` constraint, so it
+  still looks intentional rather than a stretched mobile page, without the
+  added scope of a true responsive redesign. Note for `NOTES.md`: state this
+  explicitly as a scoping decision, not an oversight.
+
 ## 1. Understand the baseline
 
 - [x] Read every component: `AddressBook.tsx`, `AddressList.tsx`,
@@ -54,10 +68,11 @@ standing instruction.
       type scale) into the real app — either Tailwind theme extension
       (`tailwind.config`) or CSS custom properties in `index.css`, replacing
       the current one-off Tailwind utility classes (`border-gray-300`, etc.).
-- [ ] **Implement layout, responsive behavior, contact organisation.** The
-      prototype was a fixed 390px phone-frame mockup; the real app needs an
-      actual responsive layout (currently just `max-w-lg` centered). Build
-      the letter-grouped list against real, variable-length data.
+- [ ] **Implement layout, contact organisation.** Design target is mobile
+      (see Decisions log); desktop stays width-constrained (`max-w-*`
+      centered, already the current approach) rather than a separate
+      layout. Build the letter-grouped list against real, variable-length
+      data at mobile widths.
 - [ ] **Adapt anything that conflicts with accessibility or the available
       data.** Concretely: the prototype's secondary line under each name was
       static placeholder text ("mobile") — this app's data has no such field,
@@ -103,7 +118,9 @@ CRUD/maps/auth/large routing changes (excluded by the brief), virtualization.
 
 ## 4. Polish the experience
 
-- [ ] Refine visual hierarchy, spacing, responsive behavior.
+- [ ] Refine visual hierarchy and spacing at the mobile widths that are the
+      actual design target (see Decisions log) — no separate desktop layout
+      work here beyond confirming the width-constraint still reads fine.
 - [ ] Add purposeful micro-interactions and motion — list filter
       enter/exit, match highlighting, press/hover states.
 - [ ] Handle `prefers-reduced-motion` and layout stability (no unexpected
@@ -122,9 +139,10 @@ CRUD/maps/auth/large routing changes (excluded by the brief), virtualization.
 
 - [ ] Accessibility review across the full flow: search → filtered list →
       detail page → back.
-- [ ] Test keyboard navigation, responsive behavior at a few widths, and
-      search/filter behavior (including empty query, no-match query, rapid
-      typing).
+- [ ] Test keyboard navigation, search/filter behavior (including empty
+      query, no-match query, rapid typing), and confirm the desktop
+      width-constraint (see Decisions log) still looks intentional rather
+      than a stretched mobile page.
 - [ ] Run the build (`yarn build`) and typecheck; inspect the console for
       warnings/errors.
 - [ ] Review the final diff end to end before calling it done.
