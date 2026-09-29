@@ -34,7 +34,7 @@ const AddressItem = ({ address }: AddressItemProps) => {
 
   return (
     <Link to={`/${id}`}>
-      <div className="flex items-center gap-3 border border-line rounded p-4 mb-3">
+      <div className="flex items-center gap-3 border-b border-line py-3">
         <div
           aria-hidden="true"
           className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-display text-sm font-bold text-white ${avatarColorFor(
