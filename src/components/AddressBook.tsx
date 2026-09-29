@@ -12,8 +12,10 @@ const AddressBook = () => {
   );
 
   return (
-    <div className="mx-auto max-w-lg p-4">
-      <h1 className="text-2xl font-bold mb-4">Address Book</h1>
+    <div className="mx-auto max-w-lg bg-page p-4">
+      <h1 className="font-display text-[32px] font-extrabold tracking-[-0.2px] text-ink mb-3">
+        Address Book
+      </h1>
       <SearchBar
         search={search}
         setSearch={setSearch}
