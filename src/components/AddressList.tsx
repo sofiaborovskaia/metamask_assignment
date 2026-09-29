@@ -52,6 +52,34 @@ const animateScrollTo = (targetY: number) => {
   scrollAnimationHandle = requestAnimationFrame(tick);
 };
 
+// A springy "bounce into place" timing curve, ported from Josh Comeau's
+// linear() technique (https://www.joshwcomeau.com/animation/linear-timing-function/).
+const BOUNCE_EASING =
+  "linear(0 0%, 0.151 8.1%, 0.223 11.7%, 0.304 15.2%, 0.392 18.4%, 0.497 21.6%, 0.619 24.8%, 0.752 27.9%, 0.999 33.3%, 0.842 37.1%, 0.79 38.6%, 0.748 40%, 0.714 41.4%, 0.691 42.7%, 0.677 44%, 0.673 44.7%, 0.672 45.3%, 0.676 46.5%, 0.69 47.8%, 0.712 49.1%, 0.743 50.4%, 0.824 53%, 0.999 57.7%, 0.927 60%, 0.883 61.8%, 0.867 62.7%, 0.856 63.6%, 0.85 64.4%, 0.848 65.3%, 0.849 66.1%, 0.855 67%, 0.865 67.9%, 0.879 68.8%, 0.911 70.5%, 0.999 74.5%, 0.97 76.2%, 0.953 77.5%, 0.943 78.8%, 0.94 80.2%, 0.942 81.4%, 0.95 82.7%, 0.989 86.9%, 1 88.2%, 0.99 90%, 0.987 91.9%, 0.989 93.5%, 0.998 97.5%, 1 100%)";
+
+const supportsBounceEasing =
+  typeof CSS !== "undefined" && CSS.supports("transition-timing-function", BOUNCE_EASING);
+
+// Landing feedback for a letter jumped to via the rail, replacing a focus
+// ring that looked rough on a 72px sticky heading. Driven imperatively via
+// the Web Animations API (not a CSS class toggle) so it reliably replays
+// every time, including repeat jumps to the same letter.
+//
+// Animates the inner glyph span, not the heading itself — the heading also
+// carries the sticky fade-gradient background (masking scrolled content
+// underneath it), which needs to stay put; only the letter should jump.
+const bounceHeading = (heading: HTMLElement) => {
+  if (prefersReducedMotion()) return;
+  const glyph = heading.querySelector<HTMLElement>("[data-letter-glyph]") ?? heading;
+  glyph.animate(
+    [{ transform: "translateY(-14px)" }, { transform: "translateY(0)" }],
+    {
+      duration: supportsBounceEasing ? 1200 : 500,
+      easing: supportsBounceEasing ? BOUNCE_EASING : "cubic-bezier(0.34, 1.56, 0.64, 1)",
+    }
+  );
+};
+
 const AddressList = ({ addresses }: AddressListProps) => {
   const groups = groupByLetter(addresses);
   const letters = Array.from(groups.keys());
@@ -107,7 +135,8 @@ const AddressList = ({ addresses }: AddressListProps) => {
 
   const activateLetter = (letter: string, { userInitiated }: { userInitiated: boolean }) => {
     const heading = headingRefs.current.get(letter);
-    if (!heading) return;
+    const section = sectionRefs.current.get(letter);
+    if (!heading || !section) return;
 
     spySuspendedRef.current = true;
     clearTimeout(spyTimerRef.current);
@@ -117,7 +146,15 @@ const AddressList = ({ addresses }: AddressListProps) => {
 
     setActiveLetter(letter);
 
-    const targetY = heading.getBoundingClientRect().top + window.scrollY;
+    // Measured from the section, not the sticky heading: while a sticky
+    // element is actively pinned, it reports top ≈ 0 regardless of exactly
+    // where within its stuck range the scroll actually is. Landing exactly
+    // at one section's top puts the *previous* section right at that
+    // stuck/unstuck boundary, so reading its position was unreliable —
+    // this showed up as jumping backward into a short section landing at
+    // its bottom edge instead of its top. The plain <section> isn't
+    // sticky, so its position always reflects the true document location.
+    const targetY = section.getBoundingClientRect().top + window.scrollY;
     if (prefersReducedMotion() || !userInitiated) {
       window.scrollTo(0, targetY);
     } else {
@@ -125,6 +162,7 @@ const AddressList = ({ addresses }: AddressListProps) => {
     }
 
     if (userInitiated) {
+      bounceHeading(heading);
       // Deferred: the browser applies its own focus-on-activation for the
       // rail button's click *after* this handler runs, which would
       // otherwise steal focus back from the heading. Only done for
@@ -182,9 +220,11 @@ const AddressList = ({ addresses }: AddressListProps) => {
                 }
               }}
               tabIndex={-1}
-              className="sticky top-0 z-10 bg-[linear-gradient(var(--color-page)_82%,transparent)] pt-1 pb-3 font-display text-[72px] leading-[1.05] font-extrabold tracking-[-1px] text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="sticky top-0 z-10 bg-[linear-gradient(var(--color-page)_82%,transparent)] pt-1 pb-3 font-display text-[72px] leading-[1.05] font-extrabold tracking-[-1px] text-accent focus-visible:outline-none focus-visible:underline focus-visible:decoration-4 focus-visible:underline-offset-[10px]"
             >
-              {letter}
+              <span data-letter-glyph className="inline-block">
+                {letter}
+              </span>
             </h2>
             {group.map((address) => (
               <AddressItem key={address.id} address={address} />
