@@ -32,11 +32,11 @@ for `NOTES.md`.
 - [x] Read every component: `AddressBook.tsx`, `AddressList.tsx`,
       `AddressItem.tsx`, `SearchBar.tsx`, `AddressContext.tsx`,
       `data/addresses.ts`, `pages/AddressItemPage.tsx`.
-- [ ] Actually run `yarn dev` and click through the live app — we've only read
+- [x] Actually run `yarn dev` and click through the live app — we've only read
       the code so far, never run it. Confirm it matches what the source
       implies (plain input, plain filtering, plain card links, no styling
       beyond base Tailwind, no accessibility affordances, no motion).
-- [ ] Confirm what must be preserved: the route structure (`/` and `/:id`),
+- [x] Confirm what must be preserved: the route structure (`/` and `/:id`),
       `AddressProvider`/context shape, the `Address` interface fields
       (`id, name, address, city, state, zip` — no separate first/last name,
       no phone/"mobile" field like the prototype assumed).
