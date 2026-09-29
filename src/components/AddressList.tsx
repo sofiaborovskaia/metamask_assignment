@@ -29,7 +29,7 @@ const AddressList = ({ addresses }: AddressListProps) => {
         <section key={letter} aria-labelledby={`letter-${letter}`}>
           <h2
             id={`letter-${letter}`}
-            className="sticky top-0 z-10 bg-[linear-gradient(var(--color-page)_82%,transparent)] pt-1 pb-3 font-display text-[52px] leading-[1.05] font-extrabold tracking-[-1px] text-accent"
+            className="sticky top-0 z-10 bg-[linear-gradient(var(--color-page)_82%,transparent)] pt-1 pb-3 font-display text-[72px] leading-[1.05] font-extrabold tracking-[-1px] text-accent"
           >
             {letter}
           </h2>
