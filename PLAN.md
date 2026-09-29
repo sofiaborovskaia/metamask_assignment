@@ -43,43 +43,33 @@ for `NOTES.md`.
 
 ## 2. Translate the prototype
 
-- [ ] **Map prototype → real components.** `contacts/index.html`'s pieces and
-      where they'd land:
-      - WeMate brand/header block → new header markup inside `AddressBook.tsx`.
-      - Search input treatment → `SearchBar.tsx`.
-      - Avatar + initials + contact row → `AddressItem.tsx`.
-      - Letter-grouped sections with sticky headers → grouping logic in
-        `AddressList.tsx` (new — doesn't exist today, list is currently flat).
-      - The A-Z drag-to-scrub rail → **not mapped yet, decision below.**
-- [ ] **Decide what's reused vs. changed vs. created** — the one real
-      trade-off call, flag before deciding rather than assuming:
-      - Letter-grouped sticky headers: reuse the *pattern*, worth it even at
-        15-20 items (still legible, still the requested "contact
-        organisation").
-      - The full drag-scrub A-Z rail: this earns its complexity at hundreds
-        of contacts, not 15-20. Recommend leaving it out of the interactive
-        build and mentioning it in `NOTES.md` as a scale-dependent idea for
-        "what I'd do with more time" — but this is your call, not mine to
-        make silently.
-      - Avatar color/initials logic: portable almost as-is (same hash → palette
-        approach), just re-fed from `name` instead of `first`/`last`.
-- [ ] **Establish the styling system.** Port the prototype's design tokens
-      (`--ink`, `--ink-soft`, `--line`, `--accent`, the avatar palette, the
-      type scale) into the real app — either Tailwind theme extension
-      (`tailwind.config`) or CSS custom properties in `index.css`, replacing
-      the current one-off Tailwind utility classes (`border-gray-300`, etc.).
-- [ ] **Implement layout, contact organisation.** Design target is mobile
-      (see Decisions log); desktop stays width-constrained (`max-w-*`
-      centered, already the current approach) rather than a separate
-      layout. Build the letter-grouped list against real, variable-length
-      data at mobile widths.
-- [ ] **Adapt anything that conflicts with accessibility or the available
-      data.** Concretely: the prototype's secondary line under each name was
-      static placeholder text ("mobile") — this app's data has no such field,
-      so decide what real secondary text shows (street address is the obvious
-      candidate). Also: prototype's rail interaction pattern has real
-      keyboard/reduced-motion gaps we already found — don't port those gaps
-      forward.
+Sub-steps, each committed separately as it lands:
+
+1. [x] Design tokens ported into a Tailwind v4 `@theme` block (`index.css`) —
+       accent/ink/line/avatar-palette/rail colors, Baloo 2 + Inter. Fonts are
+       self-hosted and preloaded (not a Google Fonts runtime link) to avoid
+       font-swap layout shift.
+2. [x] Header simplified — Baloo 2 title, no WeMate brand row, no phone
+       status bar/battery icons, no contact-count badge (explicit decision).
+3. [x] Avatar (hashed color + initials) and address-as-sub-line in
+       `AddressItem.tsx`, hashed on `name` (no separate first/last field).
+4. [x] Letter-grouped list with sticky `<h2>` headings in `AddressList.tsx`
+       (real `section`/heading semantics, not styled `div`s), oversized
+       (72px) letter treatment and fade-gradient behind the sticky heading,
+       matching the prototype's exaggerated scale per explicit direction.
+5. [ ] **The accessible A-Z rail.** Revised decision: the rail is in scope as
+       a main feature (overrides the earlier recommendation to cut it for
+       scale reasons). Being built as a real control, not a copy of the
+       prototype's mouse/touch-only version — real focusable buttons,
+       keyboard navigation (arrows + Enter/Space), drag-to-scrub layered on
+       top as a progressive enhancement rather than a replacement, disabled
+       letters marked `aria-disabled`, respects `prefers-reduced-motion`.
+6. [ ] Wire everything to real filtered data end-to-end, empty state,
+       motion/reduced-motion pass across all of the above.
+
+Avatar color/initials logic ported from the prototype's `colorFor`/`initials`
+functions, adapted to hash on the single `name` field (prototype had
+separate `first`/`last`).
 
 ## 3. Complete the product behavior
 

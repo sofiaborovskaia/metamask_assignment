@@ -33,6 +33,8 @@ After each step:
 - Summarize what changed and why
 - List the checks actually run
 - Report anything unverified
+- Update `PLAN.md` (check off completed items, record new decisions) before
+  moving to the next step
 - Stop before optional work
 
 ## Accessibility at every step
