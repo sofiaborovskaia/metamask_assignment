@@ -74,6 +74,15 @@ Sub-steps, each committed separately as it lands:
        `scrollIntoView(smooth)` not animating reliably, and
        `preventDefault()` on `pointerdown` silently breaking real mouse
        clicks by suppressing the browser's own click event.
+       Follow-up polish round (commit `507253b`): fixed backward jumps
+       into short sections landing at the section's bottom instead of
+       its top (was measuring the scroll target from the sticky heading
+       instead of the non-sticky section — see commit for the full
+       explanation); replaced the rough focus ring on the 72px heading
+       with a springy landing bounce (Web Animations API, Josh Comeau's
+       `linear()` technique) plus a lighter persistent underline,
+       animating a dedicated inner glyph span so the heading's own
+       fade-gradient background stays fixed instead of jumping with it.
 6. [ ] Wire everything to real filtered data end-to-end, empty state,
        motion/reduced-motion pass across all of the above.
 
