@@ -21,7 +21,7 @@ const AddressBook = () => {
         setSearch={setSearch}
         resultCount={filteredAddresses.length}
       />
-      <AddressList addresses={filteredAddresses} />
+      <AddressList addresses={filteredAddresses} search={search} />
     </div>
   );
 };

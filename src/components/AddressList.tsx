@@ -5,6 +5,7 @@ import { Address } from "../data/addresses";
 
 interface AddressListProps {
   addresses: Address[];
+  search: string;
 }
 
 const groupByLetter = (addresses: Address[]) => {
@@ -86,7 +87,7 @@ const bounceHeading = (heading: HTMLElement) => {
   );
 };
 
-const AddressList = ({ addresses }: AddressListProps) => {
+const AddressList = ({ addresses, search }: AddressListProps) => {
   const groups = groupByLetter(addresses);
   const letters = Array.from(groups.keys());
   const lettersKey = letters.join(",");
@@ -180,6 +181,15 @@ const AddressList = ({ addresses }: AddressListProps) => {
       requestAnimationFrame(() => heading.focus({ preventScroll: true }));
     }
   };
+
+  if (addresses.length === 0) {
+    return (
+      <p className="animate-fade-in mt-12 px-6 text-center font-display text-lg font-semibold text-ink-soft">
+        No results for &ldquo;{search}&rdquo; — try a different search, or make
+        a new friend with that name!
+      </p>
+    );
+  }
 
   return (
     <div className="-mr-4 flex items-start">
