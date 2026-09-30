@@ -40,9 +40,11 @@ const SearchBar = ({ search, setSearch, resultCount }: SearchBarProps) => {
         The input has outline-none and sits translated off-screen at rest, so
         the focus ring is drawn on this wrapper whenever the input has
         keyboard focus (has-[input:focus-visible]). Without it the only focus
-        cue was the bar sliding open, at about 1.1:1 contrast.
+        cue was the bar sliding open, at about 1.1:1 contrast. The ring is a
+        thin orange (accent) box-shadow ring hugging the rim; the transparent outline is the
+        forced-colors fallback, where shadows are dropped.
       */}
-      <div className="relative h-12 overflow-hidden rounded-[14px] bg-page-alt has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-accent">
+      <div className="relative h-12 overflow-hidden rounded-[14px] bg-page-alt shadow-[0_0_0_5px_var(--color-page)] has-[input:focus-visible]:shadow-[0_0_0_2px_var(--color-accent),0_0_0_7px_var(--color-page)] has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-transparent">
         <label
           htmlFor="address-search"
           className={`absolute inset-0 z-10 flex cursor-text items-center gap-2 px-3 transition-transform duration-500 ease-[cubic-bezier(0.2,1,0.3,1)] motion-reduce:transition-none ${
@@ -82,7 +84,7 @@ const SearchBar = ({ search, setSearch, resultCount }: SearchBarProps) => {
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           autoComplete="off"
-          className={`absolute inset-y-0 left-0 rounded-l-[14px] border-0 bg-[#ebeae5] pl-3 font-sans text-[15px] font-medium text-ink outline-none transition-transform duration-500 ease-[cubic-bezier(0.2,1,0.3,1)] motion-reduce:transition-none ${
+          className={`absolute inset-y-0 left-0 rounded-l-[14px] border-0 bg-page pl-3 font-sans text-[15px] font-medium text-ink outline-none transition-transform duration-500 ease-[cubic-bezier(0.2,1,0.3,1)] motion-reduce:transition-none ${
             isActive ? "translate-x-0" : "-translate-x-full"
           }`}
           style={{ width: `calc(100% - ${ICON_ZONE})` }}
