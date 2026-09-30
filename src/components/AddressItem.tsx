@@ -3,7 +3,29 @@ import { Address } from "../data/addresses";
 
 interface AddressItemProps {
   address: Address;
+  search: string;
 }
+
+// Wraps every occurrence of `query` in `text` with a real <mark> element —
+// semantically "this is the highlighted search term", not just a styled
+// span, so the emphasis isn't conveyed by color alone.
+const highlightMatch = (text: string, query: string) => {
+  const trimmed = query.trim();
+  if (!trimmed) return text;
+
+  const escaped = trimmed.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const parts = text.split(new RegExp(`(${escaped})`, "gi"));
+
+  return parts.map((part, index) =>
+    part.toLowerCase() === trimmed.toLowerCase() ? (
+      <mark key={index} className="rounded-sm bg-[#ebeae5] text-ink">
+        {part}
+      </mark>
+    ) : (
+      part
+    ),
+  );
+};
 
 const AVATAR_COLORS = [
   "bg-avatar-orange",
@@ -17,7 +39,8 @@ const AVATAR_COLORS = [
 const initialsFor = (name: string) => {
   const parts = name.trim().split(/\s+/);
   const first = parts[0]?.[0] ?? "";
-  const last = parts.length > 1 ? parts[parts.length - 1][0] : (parts[0]?.[1] ?? "");
+  const last =
+    parts.length > 1 ? parts[parts.length - 1][0] : (parts[0]?.[1] ?? "");
   return (first + last).toUpperCase();
 };
 
@@ -29,7 +52,7 @@ const avatarColorFor = (name: string) => {
   return AVATAR_COLORS[hash % AVATAR_COLORS.length];
 };
 
-const AddressItem = ({ address }: AddressItemProps) => {
+const AddressItem = ({ address, search }: AddressItemProps) => {
   const { id, name, address: street, city, state, zip } = address;
 
   return (
@@ -38,13 +61,15 @@ const AddressItem = ({ address }: AddressItemProps) => {
         <div
           aria-hidden="true"
           className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-display text-sm font-bold text-white ${avatarColorFor(
-            name
+            name,
           )}`}
         >
           {initialsFor(name)}
         </div>
         <div className="min-w-0">
-          <p className="font-semibold text-ink truncate">{name}</p>
+          <p className="font-semibold text-ink truncate">
+            {highlightMatch(name, search)}
+          </p>
           <p className="text-sm text-ink-soft truncate">{street}</p>
           <p className="text-sm text-ink-soft truncate">
             {city}, {state} {zip}

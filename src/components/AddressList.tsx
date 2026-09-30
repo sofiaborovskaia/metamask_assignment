@@ -243,7 +243,7 @@ const AddressList = ({ addresses, search }: AddressListProps) => {
               </span>
             </h2>
             {group.map((address) => (
-              <AddressItem key={address.id} address={address} />
+              <AddressItem key={address.id} address={address} search={search} />
             ))}
           </section>
         ))}

@@ -76,7 +76,7 @@ const SearchBar = ({ search, setSearch, resultCount }: SearchBarProps) => {
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           autoComplete="off"
-          className={`absolute inset-y-0 left-0 rounded-l-[14px] border-0 bg-ink-soft/10 pl-3 font-sans text-[15px] font-medium text-ink outline-none transition-transform duration-500 ease-[cubic-bezier(0.2,1,0.3,1)] motion-reduce:transition-none ${
+          className={`absolute inset-y-0 left-0 rounded-l-[14px] border-0 bg-[#ebeae5] pl-3 font-sans text-[15px] font-medium text-ink outline-none transition-transform duration-500 ease-[cubic-bezier(0.2,1,0.3,1)] motion-reduce:transition-none ${
             isActive ? "translate-x-0" : "-translate-x-full"
           }`}
           style={{ width: `calc(100% - ${ICON_ZONE})` }}
