@@ -44,7 +44,7 @@ const AddressBook = () => {
   );
 
   return (
-    <div className="mx-auto max-w-lg bg-page p-4">
+    <main className="mx-auto max-w-lg bg-page p-4">
       {/*
         Sticky so the title and search are always reachable while scrolling.
         -ml-4/-mt-4 + matching padding stretch its background over the
@@ -75,7 +75,7 @@ const AddressBook = () => {
         search={search}
         headerHeight={headerHeight}
       />
-    </div>
+    </main>
   );
 };
 

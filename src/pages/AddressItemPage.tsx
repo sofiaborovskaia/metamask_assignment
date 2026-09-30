@@ -10,14 +10,18 @@ const AddressItemPage = () => {
   const address = addresses.find((a) => a.id === Number(id));
 
   if (!address) {
-    return <p className="p-4">Address not found.</p>;
+    return (
+      <main className="p-4">
+        <p>Address not found.</p>
+      </main>
+    );
   }
 
   const { name, address: street, city, state, zip } = address;
   const textColor = avatarTextColorFor(name);
 
   return (
-    <div className={`min-h-screen ${avatarColorFor(name)} ${textColor}`}>
+    <main className={`min-h-screen ${avatarColorFor(name)} ${textColor}`}>
       {/*
         Constrained to the same mx-auto max-w-lg width as the rest of the
         app (AddressBook's own wrapper), so the back button and content
@@ -62,7 +66,7 @@ const AddressItemPage = () => {
           {city}, {state} {zip}
         </p>
       </div>
-    </div>
+    </main>
   );
 };
 

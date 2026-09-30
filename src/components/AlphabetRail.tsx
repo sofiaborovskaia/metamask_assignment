@@ -310,7 +310,7 @@ const AlphabetRail = ({
                 onActivate(letter, { userInitiated: true });
               }}
               onKeyDown={handleKeyDown}
-              className={`tab flex flex-1 items-center justify-center rounded-r-lg font-display text-[12px] font-bold tracking-[0.2px] transition-[color,opacity] duration-[180ms] ease-out motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent ${
+              className={`tab flex flex-1 items-center justify-center rounded-r-lg font-display text-[12px] font-bold tracking-[0.2px] transition-[color,opacity] duration-[180ms] ease-out motion-reduce:transition-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent ${
                 enabled
                   ? "cursor-pointer text-ink"
                   : "disabled cursor-default text-tab-disabled-text"
@@ -340,9 +340,9 @@ const AlphabetRail = ({
       <div
         ref={bumpLabelRef}
         aria-hidden="true"
-        className={`pointer-events-none absolute top-0 left-1/2 z-30 -translate-x-1/2 -translate-y-1/2 rounded-md px-1.5 font-display text-[15px] font-extrabold text-accent ${
+        className={`pointer-events-none absolute top-0 left-1/2 z-30 -translate-x-1/2 -translate-y-1/2 rounded-md px-1.5 font-display text-[15px] font-extrabold text-accent-deep ${
           keyboardFocusLetter !== null && keyboardFocusLetter === activeLetter
-            ? "ring-2 ring-accent"
+            ? "ring-2 ring-accent outline-2 outline-transparent"
             : ""
         }`}
       />

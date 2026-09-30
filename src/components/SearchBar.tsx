@@ -18,7 +18,7 @@ const SearchBar = ({ search, setSearch, resultCount }: SearchBarProps) => {
     resultCount === 1 ? "1 result found" : `${resultCount} results found`;
 
   return (
-    <div className="mr-5">
+    <div role="search" className="mr-5">
       {/*
         Ported from Codrops' "Kaede" text input effect: the input sits
         absolutely positioned, hidden off-screen to the left at rest, and
@@ -36,7 +36,13 @@ const SearchBar = ({ search, setSearch, resultCount }: SearchBarProps) => {
         regardless of where the input itself currently sits, which is
         exactly the mechanism the original effect relies on.
       */}
-      <div className="relative h-12 overflow-hidden rounded-[14px] bg-page-alt">
+      {/*
+        The input has outline-none and sits translated off-screen at rest, so
+        the focus ring is drawn on this wrapper whenever the input has
+        keyboard focus (has-[input:focus-visible]). Without it the only focus
+        cue was the bar sliding open, at about 1.1:1 contrast.
+      */}
+      <div className="relative h-12 overflow-hidden rounded-[14px] bg-page-alt has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-accent">
         <label
           htmlFor="address-search"
           className={`absolute inset-0 z-10 flex cursor-text items-center gap-2 px-3 transition-transform duration-500 ease-[cubic-bezier(0.2,1,0.3,1)] motion-reduce:transition-none ${
