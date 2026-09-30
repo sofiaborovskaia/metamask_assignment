@@ -202,12 +202,12 @@ const AlphabetRail = ({
   };
 
   const handlePointerDown = (event: PointerEvent<HTMLElement>) => {
-    // Deliberately no preventDefault() here — calling it on pointerdown
-    // suppresses the browser's subsequent compatibility click event, which
-    // would silently break plain taps/clicks on a letter. Pointer capture
-    // alone (so we keep receiving move events even off the rail) is safe.
+    // Deliberately no preventDefault() and no pointer capture here: either
+    // one breaks plain clicks on a letter (preventDefault suppresses the
+    // click event; capture retargets it to the <nav> instead of the letter
+    // button, so its onClick never fires). Capture is only taken once the
+    // press turns into a drag, in handlePointerMove.
     pointerStartRef.current = { x: event.clientX, y: event.clientY };
-    railWrapRef.current?.setPointerCapture(event.pointerId);
   };
 
   const handlePointerMove = (event: PointerEvent<HTMLElement>) => {
@@ -219,6 +219,8 @@ const AlphabetRail = ({
       const dy = event.clientY - start.y;
       if (Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
       draggingRef.current = true;
+      // Keep receiving move events even if the pointer leaves the rail.
+      railWrapRef.current?.setPointerCapture(event.pointerId);
     }
 
     event.preventDefault();
@@ -229,7 +231,9 @@ const AlphabetRail = ({
     pointerStartRef.current = null;
     draggingRef.current = false;
     lastDragLetterRef.current = null;
-    railWrapRef.current?.releasePointerCapture(event.pointerId);
+    if (railWrapRef.current?.hasPointerCapture(event.pointerId)) {
+      railWrapRef.current.releasePointerCapture(event.pointerId);
+    }
   };
 
   return (
@@ -270,8 +274,10 @@ const AlphabetRail = ({
                 onActivate(letter, { userInitiated: true });
               }}
               onKeyDown={handleKeyDown}
-              className={`tab flex flex-1 items-center justify-center rounded-r-lg font-display text-[9px] font-bold tracking-[0.2px] transition-[color,opacity] duration-[180ms] ease-out motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
-                enabled ? "text-ink" : "disabled text-tab-disabled-text"
+              className={`tab flex flex-1 items-center justify-center rounded-r-lg font-display text-[12px] font-bold tracking-[0.2px] transition-[color,opacity] duration-[180ms] ease-out motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                enabled
+                  ? "cursor-pointer text-ink"
+                  : "disabled cursor-default text-tab-disabled-text"
               } ${isHiddenByBump ? "hidden-by-bump opacity-0" : ""} ${
                 isStacked ? "stacked" : ""
               }`}
@@ -298,7 +304,7 @@ const AlphabetRail = ({
       <div
         ref={bumpLabelRef}
         aria-hidden="true"
-        className="pointer-events-none absolute top-0 left-1/2 z-30 -translate-x-1/2 -translate-y-1/2 font-display text-[13px] font-extrabold text-accent"
+        className="pointer-events-none absolute top-0 left-1/2 z-30 -translate-x-1/2 -translate-y-1/2 font-display text-[15px] font-extrabold text-accent"
       />
     </nav>
   );
