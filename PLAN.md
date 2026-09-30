@@ -90,6 +90,27 @@ Avatar color/initials logic ported from the prototype's `colorFor`/`initials`
 functions, adapted to hash on the single `name` field (prototype had
 separate `first`/`last`).
 
+**Search bar interactive redesign (`SearchBar.tsx`, outside the original
+sub-step list above, done as a follow-up pass):** ported Codrops' "Kaede"
+text input effect — the input sits absolutely positioned, hidden off-screen
+at rest, and slides in on focus/fill while a real `<label>` (icon + "Search"
+text, not a decorative div — a plain div would silently swallow clicks
+since the input is transformed off-screen at rest) slides the other way,
+ending as a small icon chip over the wrapper's own background on the right.
+Active-state color has gone through a few iterations (orange tint read as a
+warning/alert color; a border+shadow trick was rejected in favor of a real
+background-color difference; currently a neutral `ink-soft` tint).
+
+*Future refinement ideas for this interaction (not yet built):*
+- Sequence the animation rather than running both halves at once: fade the
+  "Search" text out fully first, then move the background/icon after a
+  short delay, instead of everything animating simultaneously.
+- Add a considered cubic-bezier easing to the background/icon move
+  specifically (currently reuses the same curve as the input's slide;
+  worth its own tuned curve).
+- Keep iterating on the active-state colors — current neutral tint is a
+  placeholder, not a final answer.
+
 ## 3. Complete the product behavior
 
 - [ ] Improve search and filtering — decide scope (name only, matching
