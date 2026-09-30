@@ -83,8 +83,20 @@ Sub-steps, each committed separately as it lands:
        `linear()` technique) plus a lighter persistent underline,
        animating a dedicated inner glyph span so the heading's own
        fade-gradient background stays fixed instead of jumping with it.
-6. [ ] Wire everything to real filtered data end-to-end, empty state,
-       motion/reduced-motion pass across all of the above.
+6. [x] Wired to real filtered data end-to-end; "No results" empty state
+       added (see the search bar redesign note above). Verified: rapid
+       typing, clearing, no-match → match again, and special/HTML-like
+       characters in the query (React's JSX escaping handles this safely,
+       confirmed no console errors). Reduced-motion audit across every
+       Phase 2 animation — rail bump, rail scroll, heading bounce (all
+       JS-driven, checked via a `matchMedia` override: each confirmed to
+       skip its tween/animation entirely, not just speed it up) and the
+       search bar slide + empty-state fade (CSS-driven, confirmed the
+       `@media (prefers-reduced-motion: reduce)` rule compiles and
+       correctly targets both). No code changes needed — everything already
+       passed.
+
+**Phase 2 complete.**
 
 Avatar color/initials logic ported from the prototype's `colorFor`/`initials`
 functions, adapted to hash on the single `name` field (prototype had
