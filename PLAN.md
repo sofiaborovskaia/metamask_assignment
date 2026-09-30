@@ -125,11 +125,12 @@ background-color difference; currently a neutral `ink-soft` tint).
 
 ## 3. Complete the product behavior
 
-- [ ] Improve search and filtering — decide scope (name only, matching
-      current behavior, vs. name + address/city).
-- [ ] Add interface states and feedback — empty state, focus states, live
-      region for result count.
-- [ ] Wire the prototype's interactions to real application state — grouping,
+- [x] Improve search and filtering — kept the existing scope (name only,
+      case-insensitive substring), confirmed while building match
+      highlighting rather than silently expanded to address/city.
+- [x] Add interface states and feedback — empty state, focus states (the
+      Kaede-style search bar redesign), live region for result count.
+- [x] Wire the prototype's interactions to real application state — grouping,
       filtering, and counts all derived from context data + live search
       state, not a static mock array.
 
@@ -137,16 +138,23 @@ background-color difference; currently a neutral `ink-soft` tint).
 `ROADMAP.md`, scope target: 3-4 hours per the brief, judgment over quantity):
 
 *Do well first:*
-1. Expand the mock dataset (~15-20 entries) — 5 items can't demonstrate a
-   filtering experience; this is prep work, not a feature.
-2. Animated filter transitions on the list — the highest-value item, since
-   it's the one place in the current app with literally zero motion.
-3. Match highlighting — bold/mark the matched substring in each result.
-4. Accessible search input — label, live region announcing result count,
-   visible focus rings on input and card links.
-5. `prefers-reduced-motion` handling for everything added in (2).
-6. Empty state ("No results for '{query}'"), animated consistently with (2),
-   not a hard cut.
+1. [x] Expand the mock dataset (~15-20 entries, ended up at 35 per explicit
+   request) — 5 items can't demonstrate a filtering experience; this is
+   prep work, not a feature.
+2. [ ] **Animated filter transitions on the list — still open.** An
+   AddressItem entrance animation was built early on, then explicitly
+   reverted per direction to go back to Phase 1 in order — never rebuilt.
+   This is the one remaining item from the original "do well first" list.
+3. [x] Match highlighting — real `<mark>` elements, regex-escaped query,
+   color matched exactly to the search input's active tint (commit
+   `fa2103f`).
+4. [x] Accessible search input — label, live region announcing result
+   count, visible focus (now via the Kaede-style redesign's active-state
+   color+shape change plus a lighter persistent indicator, not a ring).
+5. [ ] `prefers-reduced-motion` handling for whatever lands in (2) once
+   it's built.
+6. [x] Empty state ("No results for '{query}'"), with a friendlier tone
+   than originally scripted, fade-in animated (reduced-motion respected).
 
 *If time remains:*
 7. Debounce the live-region announcement (not necessarily the filter itself —
