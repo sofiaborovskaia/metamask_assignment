@@ -62,7 +62,7 @@ Sub-steps, each committed separately as it lands:
        recommendation to cut it for scale reasons). Built as a real control,
        not a copy of the prototype's mouse/touch-only version — real
        focusable `<button>`s (native `disabled` for empty letters, not just
-       `aria-disabled`), arrow-key roving with Home/End, drag-to-scrub
+       `aria-disabled`), each letter its own tab stop (with a skip link ahead of the rail), arrow keys/Home/End as shortcuts, type-to-jump, drag-to-scrub
        layered on top as a progressive enhancement, `navigator.vibrate()`
        haptics (no-op on iOS, real on Android — see `NOTES.md` for why full
        iOS haptics aren't feasible), `prefers-reduced-motion` respected.
@@ -80,9 +80,14 @@ Sub-steps, each committed separately as it lands:
        instead of the non-sticky section — see commit for the full
        explanation); replaced the rough focus ring on the 72px heading
        with a springy landing bounce (Web Animations API, Josh Comeau's
-       `linear()` technique) plus a lighter persistent underline,
+       `linear()` technique) (the underline was later removed, see `NOTES.md`),
        animating a dedicated inner glyph span so the heading's own
        fade-gradient background stays fixed instead of jumping with it.
+       Later round: sticky title + search (jumps land under them), the rail
+       made `position: fixed` at full screen height, activation on pointer
+       release so slightly drifting clicks hit the pressed letter, a
+       keyboard tip (announced once to screen readers), and Right/Left arrow
+       shortcuts between the list and the rail.
 6. [x] Wired to real filtered data end-to-end; "No results" empty state
        added (see the search bar redesign note above). Verified: rapid
        typing, clearing, no-match → match again, and special/HTML-like
@@ -141,7 +146,7 @@ background-color difference; currently a neutral `ink-soft` tint).
 1. [x] Expand the mock dataset (~15-20 entries, ended up at 35 per explicit
    request) — 5 items can't demonstrate a filtering experience; this is
    prep work, not a feature.
-2. [ ] **Animated filter transitions on the list — still open.** An
+2. [ ] **Animated filter transitions on the list — dropped on scope.** An
    AddressItem entrance animation was built early on, then explicitly
    reverted per direction to go back to Phase 1 in order. Rebuilt a second
    time (entrance-only, `prefers-reduced-motion` respected, applied to both
@@ -158,8 +163,8 @@ background-color difference; currently a neutral `ink-soft` tint).
 4. [x] Accessible search input — label, live region announcing result
    count, visible focus (now via the Kaede-style redesign's active-state
    color+shape change plus a lighter persistent indicator, not a ring).
-5. [ ] `prefers-reduced-motion` handling for whatever lands in (2) once
-   it's built.
+5. [ ] `prefers-reduced-motion` handling for whatever lands in (2) — moot,
+   nothing was built.
 6. [x] Empty state ("No results for '{query}'"), with a friendlier tone
    than originally scripted, fade-in animated (reduced-motion respected).
 
@@ -175,14 +180,20 @@ CRUD/maps/auth/large routing changes (excluded by the brief), virtualization.
 
 ## 4. Polish the experience
 
-- [ ] Refine visual hierarchy and spacing at the mobile widths that are the
+- [x] Refine visual hierarchy and spacing at the mobile widths that are the
       actual design target (see Decisions log) — no separate desktop layout
       work here beyond confirming the width-constraint still reads fine.
-- [ ] Add purposeful micro-interactions and motion — list filter
+      (Done iteratively and checked at 390px wide; no separate formal pass.)
+- [x] Add purposeful micro-interactions and motion — list filter
       enter/exit, match highlighting, press/hover states.
-- [ ] Handle `prefers-reduced-motion` and layout stability (no unexpected
+      (Search bar effect, rail tab glide, match highlighting, page slide and
+      back-button hover are in. List enter/exit and card press states were
+      not built.)
+- [x] Handle `prefers-reduced-motion` and layout stability (no unexpected
       shift/jank when the list re-filters) — build this in from the start
       this time, not bolted on after, per what we relearned on the prototype.
+      (Reduced motion is respected for every animation. Re-filter jank was
+      not formally measured.)
 
 ## 5. Think about the contact detail
 
@@ -322,14 +333,18 @@ CRUD/maps/auth/large routing changes (excluded by the brief), virtualization.
 
 ## 6. Verify the result
 
-- [ ] Accessibility review across the full flow: search → filtered list →
-      detail page → back.
-- [ ] Test keyboard navigation, search/filter behavior (including empty
+- [x] Accessibility review across the full flow: search → filtered list →
+      detail page → back. (Done piece by piece: keyboard, focus, contrast,
+      reduced motion. Known gaps and the lack of screen-reader testing are
+      listed in `NOTES.md`.)
+- [x] Test keyboard navigation, search/filter behavior (including empty
       query, no-match query, rapid typing), and confirm the desktop
       width-constraint (see Decisions log) still looks intentional rather
-      than a stretched mobile page.
-- [ ] Run the build (`yarn build`) and typecheck; inspect the console for
-      warnings/errors.
+      than a stretched mobile page. (Keyboard heavily tested; rapid typing
+      and a desktop-width screenshot were not formally checked.)
+- [x] Run the build (`yarn build`) and typecheck; inspect the console for
+      warnings/errors. (Both pass; runtime errors checked with a listener on
+      most navigations, no final clean-load console sweep.)
 - [ ] Review the final diff end to end before calling it done.
 
 ## 7. Document
@@ -337,7 +352,7 @@ CRUD/maps/auth/large routing changes (excluded by the brief), virtualization.
 - [ ] Complete `NOTES.md`'s four sections: what I focused on and why, what I
       changed, accessibility considerations, tradeoffs/decisions, what I'd
       improve with more time (include the A-Z rail idea here if we cut it).
-- [ ] Record decisions/tradeoffs/limitations as we go, not all at the end —
+- [x] Record decisions/tradeoffs/limitations as we go, not all at the end —
       easier to write NOTES.md accurately that way.
 - [ ] Push to a new repo via "Use this template," add `georgewrmarshall`,
       `n3ps`, `AndyMBridges` as collaborators, and share the link (per the
