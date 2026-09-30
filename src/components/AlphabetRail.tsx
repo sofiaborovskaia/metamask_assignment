@@ -2,6 +2,7 @@ import {
   useEffect,
   useLayoutEffect,
   useRef,
+  type CSSProperties,
   type KeyboardEvent,
   type PointerEvent,
 } from "react";
@@ -13,6 +14,7 @@ interface AlphabetRailProps {
   activeLetter: string | null;
   onActivate: (letter: string, options: { userInitiated: boolean }) => void;
   className?: string;
+  style?: CSSProperties;
 }
 
 const vibrate = () => {
@@ -60,6 +62,7 @@ const AlphabetRail = ({
   activeLetter,
   onActivate,
   className = "",
+  style,
 }: AlphabetRailProps) => {
   const railWrapRef = useRef<HTMLElement>(null);
   const tabRefs = useRef(new Map<string, HTMLButtonElement>());
@@ -240,6 +243,7 @@ const AlphabetRail = ({
     <nav
       ref={railWrapRef}
       aria-label="Jump to letter"
+      style={style}
       className={`sticky top-0 flex h-screen w-7 shrink-0 touch-none overflow-hidden select-none ${className}`}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}

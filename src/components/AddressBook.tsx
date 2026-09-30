@@ -13,14 +13,19 @@ const AddressBook = () => {
 
   return (
     <div className="mx-auto max-w-lg bg-page p-4">
-      <h1 className="font-display text-[32px] font-extrabold tracking-[-0.2px] text-ink mb-3 outline-none">
-        Address Book
-      </h1>
-      <SearchBar
-        search={search}
-        setSearch={setSearch}
-        resultCount={filteredAddresses.length}
-      />
+      {/* pr-3 keeps the header clear of the alphabet rail, which now runs
+          the full height of the page (it overlaps the container's right
+          padding by 12px) instead of starting below the search bar. */}
+      <div className="pr-3">
+        <h1 className="font-display text-[32px] font-extrabold tracking-[-0.2px] text-ink mb-3 outline-none">
+          Address Book
+        </h1>
+        <SearchBar
+          search={search}
+          setSearch={setSearch}
+          resultCount={filteredAddresses.length}
+        />
+      </div>
       <AddressList addresses={filteredAddresses} search={search} />
     </div>
   );

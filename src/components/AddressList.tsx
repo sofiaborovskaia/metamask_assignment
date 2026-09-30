@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import AddressItem from "./AddressItem";
 import AlphabetRail from "./AlphabetRail";
 import { Address } from "../data/addresses";
@@ -42,7 +42,7 @@ const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 // every browser.
 let scrollAnimationHandle: number | undefined;
 
-const animateScrollTo = (targetY: number) => {
+const animateScrollTo = (targetY: number, onDone?: () => void) => {
   if (scrollAnimationHandle) cancelAnimationFrame(scrollAnimationHandle);
   const startY = window.scrollY;
   const distance = targetY - startY;
@@ -54,6 +54,8 @@ const animateScrollTo = (targetY: number) => {
     window.scrollTo(0, startY + distance * easeOutCubic(t));
     if (t < 1) {
       scrollAnimationHandle = requestAnimationFrame(tick);
+    } else {
+      onDone?.();
     }
   };
   scrollAnimationHandle = requestAnimationFrame(tick);
@@ -97,6 +99,23 @@ const AddressList = ({ addresses, search }: AddressListProps) => {
   const spySuspendedRef = useRef(false);
   const spyTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [activeLetter, setActiveLetter] = useState<string | null>(letters[0] ?? null);
+
+  // The rail is sticky to top:0 but its row starts below the page header,
+  // so at the top of the page it sat lower and got dragged up to the
+  // viewport edge during the first frames of any jump — making the bump
+  // letter appear to hop up and then back down. Pulling it up by exactly
+  // that offset means it starts where it will stick, so nothing shifts.
+  const rowRef = useRef<HTMLDivElement>(null);
+  const [railOffset, setRailOffset] = useState(0);
+  useLayoutEffect(() => {
+    const measure = () => {
+      const row = rowRef.current;
+      if (row) setRailOffset(row.getBoundingClientRect().top + window.scrollY);
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [addresses.length]);
 
   // Keep the rail's active letter in sync with whichever section is
   // currently at the top of the viewport as the user free-scrolls, ported
@@ -145,11 +164,22 @@ const AddressList = ({ addresses, search }: AddressListProps) => {
     const section = sectionRefs.current.get(letter);
     if (!heading || !section) return;
 
+    // The scroll-spy must stay off for the whole jump, not a fixed 500ms:
+    // the animated scroll can run up to 1200ms, and if the spy wakes up
+    // mid-flight it keeps overwriting the active letter with whichever
+    // section is entering the top zone — on arrival that is the *next*
+    // section, so the bump ended up on "I" after clicking "H". It resumes a
+    // beat after the scroll actually lands (queued observer callbacks fire
+    // within a frame, so they're still ignored); the long timeout is only a
+    // fallback if the animation is cancelled.
     spySuspendedRef.current = true;
-    clearTimeout(spyTimerRef.current);
-    spyTimerRef.current = setTimeout(() => {
-      spySuspendedRef.current = false;
-    }, 500);
+    const resumeSpyIn = (ms: number) => {
+      clearTimeout(spyTimerRef.current);
+      spyTimerRef.current = setTimeout(() => {
+        spySuspendedRef.current = false;
+      }, ms);
+    };
+    resumeSpyIn(500);
 
     setActiveLetter(letter);
 
@@ -165,7 +195,8 @@ const AddressList = ({ addresses, search }: AddressListProps) => {
     if (prefersReducedMotion() || !userInitiated) {
       window.scrollTo(0, targetY);
     } else {
-      animateScrollTo(targetY);
+      resumeSpyIn(1600);
+      animateScrollTo(targetY, () => resumeSpyIn(150));
     }
 
     if (userInitiated) {
@@ -192,7 +223,7 @@ const AddressList = ({ addresses, search }: AddressListProps) => {
   }
 
   return (
-    <div className="-mr-4 flex items-start">
+    <div ref={rowRef} className="-mr-4 flex items-start">
       {/*
         The rail comes first in DOM/tab order (reachable right after the
         search input) despite rendering on the right visually (order-2) —
@@ -211,6 +242,7 @@ const AddressList = ({ addresses, search }: AddressListProps) => {
         activeLetter={activeLetter}
         onActivate={activateLetter}
         className="order-2"
+        style={{ marginTop: -railOffset }}
       />
       <div className="order-1 min-w-0 flex-1 pr-4">
         {Array.from(groups.entries()).map(([letter, group]) => (
