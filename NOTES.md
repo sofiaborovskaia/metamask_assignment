@@ -55,13 +55,12 @@ testing with real input:
 - Focus and positioning: Focus remains visible on the highlighted letter. Scroll padding prevents focused contacts from being obscured by the sticky header.
 - State: Scroll-linked highlighting pauses during programmatic jumps to avoid the wrong letter becoming active.
 
-Known gaps: the search field has no focus ring of its own (its cue is the bar
-sliding open, which is weak); the accent orange is only 3.37:1 on white, which
-is fine for the large letter headings and focus rings (3:1) but not for the
-small active letter in the rail (4.5:1); the back button's hover fill lowers
-its text contrast below AA on 4 of the 6 colours; rail rows drop under the
-24px target size on screens shorter than about 624px; I have not tested with
-a screen reader.
+Known gaps:
+
+- The accent orange is only 3.37:1 on white, which
+  is fine for the large letter headings and focus rings (3:1) but not for the
+  small active letter in the rail (4.5:1). That's why I made the letter in the rail depper orange, even though it is different from the actual accent color.
+- Rail rows drop under the 24px target size inside containers shorter than about 624px height.
 
 ## Tradeoffs and decisions
 
@@ -71,11 +70,13 @@ a screen reader.
 
 ## What I'd do with more time
 
-- Extract repeated visual patterns into clearer reusable components and design tokens.
 - Give the rail more of the physical address-book character I originally imagined: stacked tabs, cleaner dividing lines and subtle depth that makes the selected section feel like an open page.
-- Continue polishing the UI, visual rhythm, responsive details and transitions without adding motion that competes with the core interaction.
-- Test with screen readers, physical touch devices, Safari and Firefox, then refine the interaction based on what those tests reveal.
+- Explore subtle haptic feedback on supported mobile devices, so dragging across the rail produces a small physical response each time the active letter changes. I would treat this as a progressive enhancement, with the existing visual feedback remaining complete on devices and browsers that do not support vibration.
+- Extract repeated visual patterns into clearer reusable components and design tokens.
+- Review the generated markup and component structure more deeply, removing unnecessary wrappers or ARIA and making sure the implementation remains as simple and semantic as the interaction allows.
 - Add targeted tests around the main journey.
 - Test the interface with a larger and more varied dataset (long content, diacritics and missing fields).
+- Test with screen readers, physical touch devices, Safari and Firefox, then refine the interaction based on what those tests reveal.
+- Continue polishing the UI, visual rhythm, responsive details and transitions.
 
 That's all :)
