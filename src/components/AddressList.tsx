@@ -1,4 +1,10 @@
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type FocusEvent,
+  type KeyboardEvent,
+} from "react";
 import AddressItem from "./AddressItem";
 import AlphabetRail from "./AlphabetRail";
 import { Address } from "../data/addresses";
@@ -97,6 +103,52 @@ const AddressList = ({ addresses, search, headerHeight }: AddressListProps) => {
 
   const sectionRefs = useRef(new Map<string, HTMLElement>());
   const headingRefs = useRef(new Map<string, HTMLHeadingElement>());
+  const contactsRef = useRef<HTMLDivElement>(null);
+
+  // Keyboard hint: nothing on screen says that letters jump to sections or
+  // that arrows move along the rail, so keyboard users are told. Visible
+  // only while *keyboard* focus is inside the list/rail (never for mouse
+  // use). For screen readers it is also spoken once per page view through
+  // a polite status region (repeating it on every focus would be noise),
+  // and a permanent visually-hidden copy sits next to the rail for people
+  // reading the page in browse mode.
+  // What's true depends on where focus is: letters jump from anywhere, but
+  // the arrow keys only move between letters once focus is *on the rail* —
+  // on a contact card they just scroll the page — so the visible tip says
+  // only what works at the current spot. The spoken/hidden copy covers both.
+  const FULL_HINT =
+    "Press a letter to jump to that section. Press the right arrow key to move to the letter index; there, use the up and down arrow keys to move between letters, then Enter, and the left arrow key to return to the contacts.";
+  const RAIL_HINT =
+    "Use the up and down arrow keys to move between letters, then Enter to jump. Press the left arrow key to go back to the contacts.";
+  const LIST_HINT =
+    "Press a letter to jump to that section, or the right arrow key to go to the letter index.";
+  const [hintContext, setHintContext] = useState<"rail" | "list" | null>(null);
+  const [announcement, setAnnouncement] = useState("");
+  const hintAnnouncedRef = useRef(false);
+
+  const handleRowFocus = (event: FocusEvent<HTMLDivElement>) => {
+    const target = event.target as HTMLElement;
+    if (!target.matches(":focus-visible")) return;
+    // No tip on the skip link itself: it would talk about going *to* the
+    // letter index while the focused control says to skip it.
+    if (target.closest("[data-skip-link]")) {
+      setHintContext(null);
+      return;
+    }
+    setHintContext(
+      target.closest('nav[aria-label="Jump to letter"]') ? "rail" : "list"
+    );
+    if (!hintAnnouncedRef.current) {
+      hintAnnouncedRef.current = true;
+      setAnnouncement(FULL_HINT);
+    }
+  };
+
+  const handleRowBlur = (event: FocusEvent<HTMLDivElement>) => {
+    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+      setHintContext(null);
+    }
+  };
   const spySuspendedRef = useRef(false);
   const spyTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [activeLetter, setActiveLetter] = useState<string | null>(letters[0] ?? null);
@@ -212,8 +264,44 @@ const AddressList = ({ addresses, search, headerHeight }: AddressListProps) => {
   // announce. Only the list/rail subtree is wired up, so typing in the
   // search field is untouched; letters with no contacts, modified keys and
   // held-down repeats are ignored (and left to the browser).
-  const handleTypeToJump = (event: KeyboardEvent<HTMLDivElement>) => {
+  const handleListKeys = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.ctrlKey || event.metaKey || event.altKey || event.repeat) return;
+
+    // Spatial shortcut: the rail sits to the right of the list, so Right
+    // arrow from a contact goes to it, landing on that contact's own letter,
+    // and Left arrow from a rail letter goes to the first contact under
+    // *that* letter. Both follow where keyboard focus is, not the
+    // scroll-spy's active letter (which tracks whatever happens to be
+    // scrolled to the top and can differ from where the user is).
+    const target = event.target as HTMLElement;
+    const inRail = !!target.closest('nav[aria-label="Jump to letter"]');
+    if (event.key === "ArrowRight" && !inRail) {
+      const nav = event.currentTarget.querySelector<HTMLElement>(
+        'nav[aria-label="Jump to letter"]'
+      );
+      const buttons = Array.from(nav?.querySelectorAll("button") ?? []).filter(
+        (button) => !button.disabled
+      );
+      const ownLetter = target.closest("section")?.dataset.letter ?? activeLetter;
+      const landing =
+        buttons.find((button) => button.textContent === ownLetter) ?? buttons[0];
+      if (landing) {
+        event.preventDefault();
+        landing.focus();
+      }
+      return;
+    }
+    if (event.key === "ArrowLeft" && inRail) {
+      const focusedLetter = target.closest("button")?.textContent ?? activeLetter;
+      const section = sectionRefs.current.get(focusedLetter ?? letters[0] ?? "");
+      const card = section?.querySelector<HTMLElement>("a");
+      if (card) {
+        event.preventDefault();
+        card.focus();
+      }
+      return;
+    }
+
     if (!/^[a-z]$/i.test(event.key)) return;
     if ((event.target as HTMLElement).closest("input, textarea, [contenteditable]")) return;
     const letter = event.key.toUpperCase();
@@ -232,7 +320,13 @@ const AddressList = ({ addresses, search, headerHeight }: AddressListProps) => {
   }
 
   return (
-    <div className="-mr-4 flex items-start" onKeyDown={handleTypeToJump}>
+    <div
+      className="-mr-4 flex items-start"
+      onKeyDown={handleListKeys}
+      onFocus={handleRowFocus}
+      onBlur={handleRowBlur}
+      onPointerDown={() => setHintContext(null)}
+    >
       {/*
         The rail comes first in DOM/tab order (reachable right after the
         search input) despite rendering on the right visually (order-2) —
@@ -255,13 +349,35 @@ const AddressList = ({ addresses, search, headerHeight }: AddressListProps) => {
         width so the cards don't run underneath it.
       */}
       <div className="order-2 w-7 shrink-0">
+        {/*
+          Every letter with contacts is its own tab stop (the established
+          A–Z index pattern: a nav landmark of links, not a composite
+          widget), so this skip link comes first — up to ~20 letters
+          shouldn't stand between a keyboard user and the contacts
+          (WCAG 2.4.1 Bypass Blocks). Hidden until focused.
+        */}
+        <p className="sr-only">{FULL_HINT}</p>
+        <div role="status" className="sr-only">
+          {announcement}
+        </div>
+        <a
+          href="#contacts"
+          data-skip-link
+          onClick={(event) => {
+            event.preventDefault();
+            contactsRef.current?.querySelector<HTMLElement>("a")?.focus();
+          }}
+          className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-full focus:bg-page focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-ink focus:shadow-lg focus:outline-2 focus:outline-offset-2 focus:outline-accent"
+        >
+          Skip letter index
+        </a>
         <AlphabetRail
           availableLetters={new Set(letters)}
           activeLetter={activeLetter}
           onActivate={activateLetter}
         />
       </div>
-      <div className="order-1 min-w-0 flex-1 pr-4">
+      <div id="contacts" ref={contactsRef} className="order-1 min-w-0 flex-1 pr-4">
         {Array.from(groups.entries()).map(([letter, group]) => (
           <section
             key={letter}
@@ -296,6 +412,14 @@ const AddressList = ({ addresses, search, headerHeight }: AddressListProps) => {
             ))}
           </section>
         ))}
+        {hintContext && (
+          <p
+            aria-hidden="true"
+            className="animate-fade-in pointer-events-none sticky bottom-4 z-40 mx-auto w-fit max-w-full rounded-full bg-ink px-4 py-2 text-center text-sm font-medium text-page shadow-lg"
+          >
+            {hintContext === "rail" ? RAIL_HINT : LIST_HINT}
+          </p>
+        )}
       </div>
     </div>
   );

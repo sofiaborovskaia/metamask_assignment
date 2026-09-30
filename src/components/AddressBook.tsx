@@ -25,6 +25,8 @@ const AddressBook = () => {
       setHeaderHeight(h);
       root.style.setProperty("--header-h", `${h}px`);
       root.style.scrollPaddingTop = `${h + 96}px`;
+      // Bottom clearance for the keyboard hint pill that floats over the list.
+      root.style.scrollPaddingBottom = "84px";
     };
     update();
     const observer = new ResizeObserver(update);
@@ -33,6 +35,7 @@ const AddressBook = () => {
       observer.disconnect();
       root.style.removeProperty("--header-h");
       root.style.removeProperty("scroll-padding-top");
+      root.style.removeProperty("scroll-padding-bottom");
     };
   }, []);
 

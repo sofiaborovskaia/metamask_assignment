@@ -70,12 +70,15 @@ const AlphabetRail = ({
   const animHandleRef = useRef<number | undefined>(undefined);
   const draggingRef = useRef(false);
   const lastDragLetterRef = useRef<string | null>(null);
-  const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
+  const pointerStartRef = useRef<{ x: number; y: number; letter: string | null } | null>(null);
 
-  // Minimum pointer movement, in px, before a press counts as a drag rather
-  // than a click. Below this, calling preventDefault() would suppress the
-  // browser's own click event for a plain tap (see handlePointerDown).
-  const DRAG_THRESHOLD = 6;
+  // Minimum pointer movement, in px, before a press counts as a drag
+  // (scrubbing along the rail) rather than a click. Below it, releasing
+  // activates the letter that was *pressed*, wherever the pointer drifted —
+  // with rows ~29px tall, the old 6px threshold turned ordinary slightly
+  // sloppy clicks into drags that either did nothing (drifted onto a letter
+  // with no contacts) or jumped to a neighbouring letter.
+  const DRAG_THRESHOLD = 10;
 
   const enabledLetters = ALPHABET.filter((letter) => availableLetters.has(letter));
   const activeIndex = activeLetter ? ALPHABET.indexOf(activeLetter) : -1;
@@ -215,7 +218,12 @@ const AlphabetRail = ({
     // click event; capture retargets it to the <nav> instead of the letter
     // button, so its onClick never fires). Capture is only taken once the
     // press turns into a drag, in handlePointerMove.
-    pointerStartRef.current = { x: event.clientX, y: event.clientY };
+    const pressed = letterFromPointer(event.clientY);
+    pointerStartRef.current = {
+      x: event.clientX,
+      y: event.clientY,
+      letter: pressed && availableLetters.has(pressed) ? pressed : null,
+    };
   };
 
   const handlePointerMove = (event: PointerEvent<HTMLElement>) => {
@@ -235,13 +243,28 @@ const AlphabetRail = ({
     updateFromPointer(event.clientY);
   };
 
-  const stopDragging = (event: PointerEvent<HTMLElement>) => {
+  const endPointer = (event: PointerEvent<HTMLElement>) => {
     pointerStartRef.current = null;
     draggingRef.current = false;
     lastDragLetterRef.current = null;
     if (railWrapRef.current?.hasPointerCapture(event.pointerId)) {
       railWrapRef.current.releasePointerCapture(event.pointerId);
     }
+  };
+
+  // Activation happens here, on release (WCAG 2.5.2 Pointer Cancellation:
+  // nothing fires on the down-event, and moving off the rail before
+  // releasing cancels it). We use the letter recorded at press time instead
+  // of relying on the browser's click event, which is never sent when the
+  // pointer drifts across a row boundary between down and up. Keyboard
+  // activation (Enter/Space) still goes through the buttons' onClick.
+  const handlePointerUp = (event: PointerEvent<HTMLElement>) => {
+    const start = pointerStartRef.current;
+    if (start?.letter && !draggingRef.current) {
+      vibrate();
+      onActivate(start.letter, { userInitiated: true });
+    }
+    endPointer(event);
   };
 
   return (
@@ -251,15 +274,14 @@ const AlphabetRail = ({
       className={`fixed inset-y-0 flex w-7 touch-none overflow-hidden select-none ${className}`}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
-      onPointerUp={stopDragging}
-      onPointerCancel={stopDragging}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={endPointer}
     >
       <div className="flex h-full flex-1 flex-col">
         {ALPHABET.map((letter, index) => {
           const enabled = availableLetters.has(letter);
           const isHiddenByBump = enabled && letter === activeLetter;
           const isStacked = index > activeIndex;
-          const isTabStop = enabled && letter === (activeLetter ?? enabledLetters[0]);
 
           return (
             <button
@@ -273,7 +295,6 @@ const AlphabetRail = ({
               }}
               type="button"
               disabled={!enabled}
-              tabIndex={isTabStop ? 0 : -1}
               onFocus={(event) => {
                 focusedLetterRef.current = letter;
                 setKeyboardFocusLetter(
@@ -281,7 +302,10 @@ const AlphabetRail = ({
                 );
               }}
               onBlur={() => setKeyboardFocusLetter(null)}
-              onClick={() => {
+              onClick={(event) => {
+                // Pointer clicks (detail > 0) are handled on pointerup
+                // above; this path is keyboard activation (detail === 0).
+                if (event.detail !== 0) return;
                 vibrate();
                 onActivate(letter, { userInitiated: true });
               }}

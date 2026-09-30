@@ -34,10 +34,11 @@ const AddressItem = ({ address, search }: AddressItemProps) => {
   return (
     <Link
       to={`/${id}`}
-      // relative + z-20 on focus lifts the card above the next section's
-      // sticky letter heading (z-10, opaque background), which otherwise
-      // paints over the outline's bottom edge and can cover focus entirely.
-      className="-mx-2 block rounded-xl px-2 focus-visible:relative focus-visible:z-20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+      // The focus ring is drawn *inside* the card (negative offset) rather
+      // than around it, so it can't stick out under the next section's
+      // sticky letter heading — which means the focused card needs no
+      // z-index lift and scrolls behind the letters like any other card.
+      className="-mx-2 block rounded-xl px-2 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent"
     >
       <div className="flex items-center gap-3 border-b border-line py-3">
         <div
