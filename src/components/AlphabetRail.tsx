@@ -2,7 +2,7 @@ import {
   useEffect,
   useLayoutEffect,
   useRef,
-  type CSSProperties,
+  useState,
   type KeyboardEvent,
   type PointerEvent,
 } from "react";
@@ -14,7 +14,6 @@ interface AlphabetRailProps {
   activeLetter: string | null;
   onActivate: (letter: string, options: { userInitiated: boolean }) => void;
   className?: string;
-  style?: CSSProperties;
 }
 
 const vibrate = () => {
@@ -62,7 +61,6 @@ const AlphabetRail = ({
   activeLetter,
   onActivate,
   className = "",
-  style,
 }: AlphabetRailProps) => {
   const railWrapRef = useRef<HTMLElement>(null);
   const tabRefs = useRef(new Map<string, HTMLButtonElement>());
@@ -157,6 +155,13 @@ const AlphabetRail = ({
   // selection/bump position), which only changes on click or Enter/Space.
   const focusedLetterRef = useRef<string | null>(null);
 
+  // Letter whose button has *keyboard* focus (focus-visible), if any. The
+  // active letter's own button is hidden behind the bump (opacity 0) — and
+  // it's also the rail's tab stop — so without this, tabbing into the rail
+  // landed on an invisible button and looked like the rail was skipped
+  // entirely. The bump draws the focus ring for that case instead.
+  const [keyboardFocusLetter, setKeyboardFocusLetter] = useState<string | null>(null);
+
   const moveFocus = (direction: 1 | -1) => {
     if (enabledLetters.length === 0) return;
     const reference = focusedLetterRef.current ?? activeLetter;
@@ -243,8 +248,7 @@ const AlphabetRail = ({
     <nav
       ref={railWrapRef}
       aria-label="Jump to letter"
-      style={style}
-      className={`sticky top-0 flex h-screen w-7 shrink-0 touch-none overflow-hidden select-none ${className}`}
+      className={`fixed inset-y-0 flex w-7 touch-none overflow-hidden select-none ${className}`}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={stopDragging}
@@ -270,15 +274,19 @@ const AlphabetRail = ({
               type="button"
               disabled={!enabled}
               tabIndex={isTabStop ? 0 : -1}
-              onFocus={() => {
+              onFocus={(event) => {
                 focusedLetterRef.current = letter;
+                setKeyboardFocusLetter(
+                  event.currentTarget.matches(":focus-visible") ? letter : null
+                );
               }}
+              onBlur={() => setKeyboardFocusLetter(null)}
               onClick={() => {
                 vibrate();
                 onActivate(letter, { userInitiated: true });
               }}
               onKeyDown={handleKeyDown}
-              className={`tab flex flex-1 items-center justify-center rounded-r-lg font-display text-[12px] font-bold tracking-[0.2px] transition-[color,opacity] duration-[180ms] ease-out motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+              className={`tab flex flex-1 items-center justify-center rounded-r-lg font-display text-[12px] font-bold tracking-[0.2px] transition-[color,opacity] duration-[180ms] ease-out motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent ${
                 enabled
                   ? "cursor-pointer text-ink"
                   : "disabled cursor-default text-tab-disabled-text"
@@ -308,7 +316,11 @@ const AlphabetRail = ({
       <div
         ref={bumpLabelRef}
         aria-hidden="true"
-        className="pointer-events-none absolute top-0 left-1/2 z-30 -translate-x-1/2 -translate-y-1/2 font-display text-[15px] font-extrabold text-accent"
+        className={`pointer-events-none absolute top-0 left-1/2 z-30 -translate-x-1/2 -translate-y-1/2 rounded-md px-1.5 font-display text-[15px] font-extrabold text-accent ${
+          keyboardFocusLetter !== null && keyboardFocusLetter === activeLetter
+            ? "ring-2 ring-accent"
+            : ""
+        }`}
       />
     </nav>
   );

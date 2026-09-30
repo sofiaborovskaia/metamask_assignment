@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import AddressItem from "./AddressItem";
 import AlphabetRail from "./AlphabetRail";
 import { Address } from "../data/addresses";
@@ -6,6 +6,7 @@ import { Address } from "../data/addresses";
 interface AddressListProps {
   addresses: Address[];
   search: string;
+  headerHeight: number;
 }
 
 const groupByLetter = (addresses: Address[]) => {
@@ -89,7 +90,7 @@ const bounceHeading = (heading: HTMLElement) => {
   );
 };
 
-const AddressList = ({ addresses, search }: AddressListProps) => {
+const AddressList = ({ addresses, search, headerHeight }: AddressListProps) => {
   const groups = groupByLetter(addresses);
   const letters = Array.from(groups.keys());
   const lettersKey = letters.join(",");
@@ -100,23 +101,6 @@ const AddressList = ({ addresses, search }: AddressListProps) => {
   const spyTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [activeLetter, setActiveLetter] = useState<string | null>(letters[0] ?? null);
 
-  // The rail is sticky to top:0 but its row starts below the page header,
-  // so at the top of the page it sat lower and got dragged up to the
-  // viewport edge during the first frames of any jump — making the bump
-  // letter appear to hop up and then back down. Pulling it up by exactly
-  // that offset means it starts where it will stick, so nothing shifts.
-  const rowRef = useRef<HTMLDivElement>(null);
-  const [railOffset, setRailOffset] = useState(0);
-  useLayoutEffect(() => {
-    const measure = () => {
-      const row = rowRef.current;
-      if (row) setRailOffset(row.getBoundingClientRect().top + window.scrollY);
-    };
-    measure();
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
-  }, [addresses.length]);
-
   // Keep the rail's active letter in sync with whichever section is
   // currently at the top of the viewport as the user free-scrolls, ported
   // from the prototype's IntersectionObserver scroll-spy — without this the
@@ -125,6 +109,13 @@ const AddressList = ({ addresses, search }: AddressListProps) => {
     const sections = Array.from(sectionRefs.current.values());
     if (sections.length === 0) return;
 
+    // Detection zone: a band just below the sticky header (not the very top
+    // of the viewport, which is now covered by it).
+    const zoneHeight = window.innerHeight * 0.22;
+    const bottomMargin = Math.max(
+      0,
+      window.innerHeight - headerHeight - zoneHeight
+    );
     const observer = new IntersectionObserver(
       (entries) => {
         if (spySuspendedRef.current) return;
@@ -142,13 +133,13 @@ const AddressList = ({ addresses, search }: AddressListProps) => {
         );
         if (best) setActiveLetter(best.letter);
       },
-      { rootMargin: "0px 0px -78% 0px", threshold: 0 }
+      { rootMargin: `-${headerHeight}px 0px -${bottomMargin}px 0px`, threshold: 0 }
     );
 
     sections.forEach((section) => observer.observe(section));
     return () => observer.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lettersKey]);
+  }, [lettersKey, headerHeight]);
 
   // If the current active letter drops out of the filtered results (e.g.
   // search narrows past it), fall back to the first available one.
@@ -191,7 +182,8 @@ const AddressList = ({ addresses, search }: AddressListProps) => {
     // this showed up as jumping backward into a short section landing at
     // its bottom edge instead of its top. The plain <section> isn't
     // sticky, so its position always reflects the true document location.
-    const targetY = section.getBoundingClientRect().top + window.scrollY;
+    const targetY =
+      section.getBoundingClientRect().top + window.scrollY - headerHeight;
     if (prefersReducedMotion() || !userInitiated) {
       window.scrollTo(0, targetY);
     } else {
@@ -213,6 +205,23 @@ const AddressList = ({ addresses, search }: AddressListProps) => {
     }
   };
 
+  // Type-to-jump: pressing a letter while focus is anywhere in the list (or
+  // the rail) jumps to that letter's section, like a native list/menu — so
+  // keyboard users never have to travel back to the rail to use the
+  // alphabet. Focus lands on the section heading, which screen readers
+  // announce. Only the list/rail subtree is wired up, so typing in the
+  // search field is untouched; letters with no contacts, modified keys and
+  // held-down repeats are ignored (and left to the browser).
+  const handleTypeToJump = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.ctrlKey || event.metaKey || event.altKey || event.repeat) return;
+    if (!/^[a-z]$/i.test(event.key)) return;
+    if ((event.target as HTMLElement).closest("input, textarea, [contenteditable]")) return;
+    const letter = event.key.toUpperCase();
+    if (!headingRefs.current.has(letter)) return;
+    event.preventDefault();
+    activateLetter(letter, { userInitiated: true });
+  };
+
   if (addresses.length === 0) {
     return (
       <p className="animate-fade-in mt-12 px-6 text-center font-display text-lg font-semibold text-ink-soft">
@@ -223,7 +232,7 @@ const AddressList = ({ addresses, search }: AddressListProps) => {
   }
 
   return (
-    <div ref={rowRef} className="-mr-4 flex items-start">
+    <div className="-mr-4 flex items-start" onKeyDown={handleTypeToJump}>
       {/*
         The rail comes first in DOM/tab order (reachable right after the
         search input) despite rendering on the right visually (order-2) —
@@ -236,14 +245,22 @@ const AddressList = ({ addresses, search }: AddressListProps) => {
         edge on desktop — rather than sitting inset like the rest of the
         page content. The list column below restores that same padding
         (pr-4) for its own content so contact cards keep their right inset.
+
+        The rail itself is position: fixed to the full height of the screen,
+        so it never moves or scrolls with the page. It sits inside an
+        in-flow, same-width placeholder on purpose: a fixed element with no
+        left/right set stays at its static position, so the placeholder pins
+        it horizontally to the list's right edge at any viewport width (no
+        centering math), while the placeholder also reserves the column's
+        width so the cards don't run underneath it.
       */}
-      <AlphabetRail
-        availableLetters={new Set(letters)}
-        activeLetter={activeLetter}
-        onActivate={activateLetter}
-        className="order-2"
-        style={{ marginTop: -railOffset }}
-      />
+      <div className="order-2 w-7 shrink-0">
+        <AlphabetRail
+          availableLetters={new Set(letters)}
+          activeLetter={activeLetter}
+          onActivate={activateLetter}
+        />
+      </div>
       <div className="order-1 min-w-0 flex-1 pr-4">
         {Array.from(groups.entries()).map(([letter, group]) => (
           <section
@@ -268,7 +285,7 @@ const AddressList = ({ addresses, search }: AddressListProps) => {
                 }
               }}
               tabIndex={-1}
-              className="sticky top-0 z-10 bg-[linear-gradient(var(--color-page)_82%,transparent)] pt-1 pb-3 font-display text-[72px] leading-[1.05] font-extrabold tracking-[-1px] text-accent outline-none"
+              className="sticky top-[var(--header-h,0px)] z-10 bg-[linear-gradient(var(--color-page)_82%,transparent)] pt-1 pb-3 font-display text-[72px] leading-[1.05] font-extrabold tracking-[-1px] text-accent outline-none"
             >
               <span data-letter-glyph className="inline-block">
                 {letter}
