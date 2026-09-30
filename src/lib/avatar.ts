@@ -10,25 +10,23 @@
 // reference palette's mid-toned colors (blue, green, olive, purple,
 // orange-red) has enough lightness range to pair with another reference
 // color unmodified. Each background is paired with a text color from
-// that same set (with one exception, white, used once by request) —
-// individually verified to meet 4.5:1, not assumed. Deliberately varied
-// rather than defaulting every pair to the same dark text: the darkened
-// backgrounds each pair with a different bright accent (lime, white,
-// light pink), and the light backgrounds pair with the illustration's
-// own dark maroon tones. (Pale pink was dropped — leaving light pink as
-// the only pink, per request, rather than two near-identical pinks.)
+// that same set (no black or white) — the pairs below are hand-picked,
+// and every ratio in the comments is computed from the actual hex values
+// in index.css (WCAG relative luminance), all above the 4.5:1 AA minimum.
+// (Pale pink was dropped — leaving light pink as the only pink, per
+// request, rather than two near-identical pinks.)
 interface AvatarColor {
   bg: string;
   text: string;
 }
 
 const AVATAR_COLORS: AvatarColor[] = [
-  { bg: "bg-avatar-green", text: "bg-avatar-pink" }, // 5.38:1
+  { bg: "bg-avatar-green", text: "text-avatar-pink" }, // 4.80:1
   { bg: "bg-avatar-blue", text: "text-ink-maroon" }, // 4.85:1
-  { bg: "bg-avatar-purple", text: "text-avatar-lime" }, // 4.85:1
-  { bg: "bg-avatar-olive", text: "text-avatar-lime" }, // 7.61:1
+  { bg: "bg-avatar-purple", text: "text-avatar-lime" }, // 5.43:1
+  { bg: "bg-avatar-olive", text: "text-avatar-lime" }, // 5.13:1
   { bg: "bg-avatar-maroon", text: "text-avatar-pink" }, // 5.49:1
-  { bg: "bg-avatar-pink", text: "text-ink-maroon" }, // 6.24:1
+  { bg: "bg-avatar-pink", text: "text-avatar-purple" }, // 4.85:1
 ];
 
 const avatarFor = (name: string) => {
