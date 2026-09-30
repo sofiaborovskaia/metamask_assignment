@@ -18,7 +18,7 @@ const SearchBar = ({ search, setSearch, resultCount }: SearchBarProps) => {
     resultCount === 1 ? "1 result found" : `${resultCount} results found`;
 
   return (
-    <div>
+    <div className="mr-5">
       {/*
         Ported from Codrops' "Kaede" text input effect: the input sits
         absolutely positioned, hidden off-screen to the left at rest, and
