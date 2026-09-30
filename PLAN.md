@@ -143,8 +143,15 @@ background-color difference; currently a neutral `ink-soft` tint).
    prep work, not a feature.
 2. [ ] **Animated filter transitions on the list — still open.** An
    AddressItem entrance animation was built early on, then explicitly
-   reverted per direction to go back to Phase 1 in order — never rebuilt.
-   This is the one remaining item from the original "do well first" list.
+   reverted per direction to go back to Phase 1 in order. Rebuilt a second
+   time (entrance-only, `prefers-reduced-motion` respected, applied to both
+   cards and newly-appearing letter headings) — then deliberately reverted
+   again, this time on scope grounds: exit felt noticeably asymmetric next
+   to the smooth entrance, but fixing that needs real state management (or
+   a library) to keep filtered-out items mounted while they animate away,
+   which wasn't judged worth it against the remaining time budget. Recorded
+   in `NOTES.md`'s "what I'd do with more time." Still the one open item
+   from the original "do well first" list.
 3. [x] Match highlighting — real `<mark>` elements, regex-escaped query,
    color matched exactly to the search input's active tint (commit
    `fa2103f`).

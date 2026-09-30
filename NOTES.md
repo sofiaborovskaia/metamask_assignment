@@ -34,3 +34,14 @@
   research than fit in this pass; for now the rail uses `navigator.vibrate()`
   as a harmless, feature-detected enhancement (real effect on Android Chrome,
   silent no-op on iPhone).
+
+- **Animated list exit transitions.** Contact cards (and letter headings)
+  can animate in as they enter the filtered search results, but items that
+  drop out of the results still disappear instantly rather than fading out
+  — a real exit transition means keeping filtered-out items mounted briefly
+  while they animate away, which needs its own bit of state management (or
+  an animation library) rather than the plain CSS entrance keyframe used
+  for enter. Built and then deliberately reverted for this pass: it's a
+  real, noticeable asymmetry (things appear smoothly, disappear abruptly),
+  but not worth the added complexity given the remaining time budget. Worth
+  revisiting if there's time left at the end.
