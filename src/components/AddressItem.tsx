@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Address } from "../data/addresses";
+import { avatarColorFor, avatarTextColorFor, initialsFor } from "../lib/avatar";
 
 interface AddressItemProps {
   address: Address;
@@ -27,31 +28,6 @@ const highlightMatch = (text: string, query: string) => {
   );
 };
 
-const AVATAR_COLORS = [
-  "bg-avatar-orange",
-  "bg-avatar-purple",
-  "bg-avatar-olive",
-  "bg-avatar-blue",
-  "bg-avatar-maroon",
-  "bg-avatar-pink",
-];
-
-const initialsFor = (name: string) => {
-  const parts = name.trim().split(/\s+/);
-  const first = parts[0]?.[0] ?? "";
-  const last =
-    parts.length > 1 ? parts[parts.length - 1][0] : (parts[0]?.[1] ?? "");
-  return (first + last).toUpperCase();
-};
-
-const avatarColorFor = (name: string) => {
-  let hash = 0;
-  for (const char of name) {
-    hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
-  }
-  return AVATAR_COLORS[hash % AVATAR_COLORS.length];
-};
-
 const AddressItem = ({ address, search }: AddressItemProps) => {
   const { id, name, address: street, city, state, zip } = address;
 
@@ -60,9 +36,9 @@ const AddressItem = ({ address, search }: AddressItemProps) => {
       <div className="flex items-center gap-3 border-b border-line py-3">
         <div
           aria-hidden="true"
-          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-display text-sm font-bold text-white ${avatarColorFor(
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-display text-sm font-bold ${avatarColorFor(
             name,
-          )}`}
+          )} ${avatarTextColorFor(name)}`}
         >
           {initialsFor(name)}
         </div>

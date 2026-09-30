@@ -13,7 +13,7 @@ const AddressBook = () => {
 
   return (
     <div className="mx-auto max-w-lg bg-page p-4">
-      <h1 className="font-display text-[32px] font-extrabold tracking-[-0.2px] text-ink mb-3">
+      <h1 className="font-display text-[32px] font-extrabold tracking-[-0.2px] text-ink mb-3 outline-none">
         Address Book
       </h1>
       <SearchBar

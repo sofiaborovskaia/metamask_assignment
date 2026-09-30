@@ -35,6 +35,44 @@
   }
 }
 
+/*
+  Page transition pair: a plain vertical slide, same for both navigation
+  directions. No fade, no scale — the entering page slides down from
+  above; the exiting page slides back up, same as it came.
+
+  Different easing per direction, like a roller-curtain: opening eases out
+  hard, most of the motion happens early and it settles gently into place.
+  Closing gets a "back" curve with anticipation — cubic-bezier's third/
+  fourth control points going negative means the curtain dips slightly the
+  wrong way first before snapping up fast, accelerating right to the end.
+*/
+@keyframes page-exit-to-top {
+  to {
+    transform: translateY(-100%);
+  }
+}
+
+@keyframes page-enter-from-top {
+  from {
+    transform: translateY(-100%);
+  }
+}
+
+.animate-page-exit-to-top {
+  animation: page-exit-to-top 0.6s cubic-bezier(0.36, 0, 0.66, -0.56) both;
+}
+
+.animate-page-enter-from-top {
+  animation: page-enter-from-top 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-page-exit-to-top,
+  .animate-page-enter-from-top {
+    animation: none;
+  }
+}
+
 @theme {
   --font-display: "Baloo 2", sans-serif;
   --font-sans: "Inter", sans-serif;
@@ -42,12 +80,35 @@
   --color-accent: #f2592b;
   --color-accent-deep: #c93f16;
 
-  --color-avatar-orange: #f2592b;
-  --color-avatar-purple: #9b59d0;
-  --color-avatar-olive: #c6ce3d;
-  --color-avatar-pink: #e6a8e0;
-  --color-avatar-blue: #5e82d6;
-  --color-avatar-maroon: #7a3030;
+  /*
+    Sourced only from colors actually named/listed in the brand's
+    reference illustration — no invented shades, no colors pulled from
+    incidental illustration detail (the caterpillar's yellow accent was
+    dropped for exactly this reason; it isn't a named color, just a
+    detail's highlight). Each background is paired with a text color from
+    this same set (no black/white), individually verified to meet WCAG
+    AA's 4.5:1 — not assumed.
+
+    Blue is the reference's periwinkle blue, #7B8CFF, nudged to #9FACFF —
+    the exact reference value fails contrast against every other color
+    here (best case 3.47:1); this lighter version was chosen by the user
+    specifically to clear 4.5:1 against --color-ink-maroon (4.85:1).
+    Green/olive/purple are darkened 40-45% from their reference hex
+    (keeping their hue) for the same reason — the exact values don't have
+    enough lightness range to pair with anything else in the set. Names
+    are checked against the actual rendered color: a "periwinkle" this
+    dark wouldn't read as periwinkle, hence "blue"; a darkened orange-red
+    read as brown indistinguishable from maroon, so that slot was dropped
+    instead of kept under a misleading name.
+  */
+  --color-avatar-blue: #9facff;
+  --color-avatar-green: #135c40;
+  --color-avatar-olive: #5a5523;
+  --color-avatar-purple: #6c3890;
+  --color-avatar-pink: #f5b3f5;
+  --color-avatar-maroon: #7a2e45;
+  --color-avatar-lime: #c6e04a;
+  --color-ink-maroon: #6b2a3e;
 
   --color-rail: #5e82d6;
   --color-tab-disabled: #efeee9;

@@ -236,7 +236,7 @@ const AddressList = ({ addresses, search }: AddressListProps) => {
                 }
               }}
               tabIndex={-1}
-              className="sticky top-0 z-10 bg-[linear-gradient(var(--color-page)_82%,transparent)] pt-1 pb-3 font-display text-[72px] leading-[1.05] font-extrabold tracking-[-1px] text-accent focus-visible:outline-none focus-visible:underline focus-visible:decoration-4 focus-visible:underline-offset-[10px]"
+              className="sticky top-0 z-10 bg-[linear-gradient(var(--color-page)_82%,transparent)] pt-1 pb-3 font-display text-[72px] leading-[1.05] font-extrabold tracking-[-1px] text-accent outline-none"
             >
               <span data-letter-glyph className="inline-block">
                 {letter}

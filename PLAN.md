@@ -186,11 +186,139 @@ CRUD/maps/auth/large routing changes (excluded by the brief), virtualization.
 
 ## 5. Think about the contact detail
 
-- [ ] `AddressItemPage.tsx` is currently bare — decide how much it deserves
-      relative to the list (brief excludes large routing changes, so: keep
-      the route/structure, but bring visual consistency — shared avatar/color
-      logic, maybe a simple entrance transition). Don't over-invest here; the
-      brief's focus is search/filtering, not the detail view.
+- [x] `AddressItemPage.tsx` brought to visual consistency with the list:
+      shared avatar-color/initials logic (`src/lib/avatar.ts`), page
+      background set to the contact's hashed avatar color, white text,
+      content centered and width-matched to the app's `max-w-lg` column, the
+      avatar circle itself removed from the detail page (redundant once the
+      whole page carries that color), and a route-change page transition.
+      The transition went through several iterations before landing: an
+      initial direction-dependent scheme modeled on tympanus.net's
+      "move/scale" pattern (different pairs for forward vs. back), then a
+      vertical variant, then a look at motion.dev's "Mask wipe" (dropped —
+      inaccessible, paywalled source), settling on the simplest version per
+      explicit product direction: a single symmetric slide-from/to-top pair
+      (`animate-page-enter-from-top` / `animate-page-exit-to-top` in
+      `index.css`), used identically for both navigation directions — pure
+      `transform: translateY`, no scaling, no fade. Layering is keyed to
+      route type, not incoming/outgoing role: the detail page is always the
+      top z-index layer, whether it's entering or leaving, since it reads
+      as a color card sitting above the list — an earlier version keyed
+      z-index to incoming/outgoing instead, which put the list on top of
+      the detail page during back navigation. Each direction has its own
+      cubic-bezier easing rather than a shared linear/ease curve, like a
+      roller-curtain: opening uses a hard ease-out
+      (`cubic-bezier(0.16, 1, 0.3, 1)`) so the motion is front-loaded and
+      settles gently; closing uses a "back" curve with anticipation
+      (`cubic-bezier(0.36, 0, 0.66, -0.56)`) so it dips slightly the wrong
+      way first before snapping up fast toward the end. That dip briefly
+      nudges the translated layer down, which would otherwise reveal the
+      list behind it since the layer itself is background-less — fixed by
+      coloring the detail page's transition layer directly (looked up via
+      `AddressContext` + `avatarColorFor`) and extending it ~15vh above the
+      viewport, comfortably covering the dip's calculated max overshoot
+      (~10% of the layer's height). Respects `prefers-reduced-motion` (skips
+      the transition layers entirely, instant route swap) and moves focus
+      to the new page's `<h1>` after every navigation. The back button was
+      moved into the flow directly above the name (50px gap, exact
+      regardless of viewport height, vs. the previous fixed-to-page-top
+      position), relabeled from "← Back" to "← Back to the address book"
+      for a clearer accessible name (arrow is `aria-hidden`), and restyled
+      as an explicit bordered pill (was plain underlined text) at a 34px
+      tap height, comfortably over the WCAG 2.5.8 24px minimum.
+
+      **Avatar/detail-page color palette redone for contrast, three
+      times.** An accessibility pass found white text on the original
+      avatar colors failed WCAG AA (4.5:1) for 4 of 6 colors — olive
+      1.71:1 and pink 1.90:1 were barely readable. Pass 1 fixed this with
+      darkened colors + white/ink text, plus two invented colors (teal,
+      gold). Pass 2 dropped the invented colors and rebuilt from the
+      brand's reference illustration's own hex values instead — but
+      lightening 5 of the 8 colors to pair with the reference's dark
+      maroon text meant that one maroon tone did almost all the work
+      (used in 6 of 8 pairs), and the reference's own bright green
+      (`#1F9A6B`) and lime (`#C6E04A`) went unused. Pass 3 (current):
+      darkened those same 5 colors instead of lightening them, so each
+      pairs with a *different* bright accent from the illustration (lime,
+      gold, light pink, pale pink) rather than all converging on one dark
+      maroon — green in particular now pairs with lime, both used at
+      values close to the reference's exact hex. Still zero black/white
+      anywhere, still individually verified at 4.5:1+ (range 4.89–6.24:1).
+      `src/lib/avatar.ts`'s `avatarTextColorFor` now returns one of five
+      in-palette text classes; the back button's border/focus ring use
+      `currentColor` so they automatically match whichever text color a
+      given detail page pairs with, instead of a separate chrome variant
+      to keep in sync by hand.
+
+      **Pass 4: fixed color naming to match the actual rendered color.**
+      The darkened "periwinkle" no longer looked periwinkle (that name
+      implies pale/light) — renamed `avatar-indigo`. The darkened
+      orange-red rendered as brown, indistinguishable from maroon, and the
+      app already has an unrelated `--color-accent` that *is* orange
+      (search icon/letter headers) — a second, browner "orange" was
+      actively confusing, so that slot was dropped rather than renamed;
+      maroon covers that territory. `avatar-gold` (#FFC933) renamed to
+      `avatar-yellow` — "gold" isn't a name in the reference list.
+
+      **Pass 5: removed the caterpillar's yellow entirely (not a real
+      reference color — it's incidental illustration detail, not a named
+      one), and replaced blue with the user's exact requested hex.** The
+      reference's literal periwinkle blue (`#7B8CFF`) fails 4.5:1 against
+      every other color in the set (best case 3.47:1) — none of the
+      reference's mid-toned colors (blue, green, olive, purple, orange-red)
+      have enough lightness range to pair with each other unmodified; this
+      is a property of the source illustration, not a solvable naming
+      issue. Flagged this rather than silently adjusting again; the user
+      chose `#9FACFF` (a slight lightening of their own exact hex), which
+      pairs with `--color-ink-maroon` at 4.85:1 — verified, not assumed.
+      "Indigo" is `avatar-blue` again now that it's a genuinely blue,
+      undarkened-in-spirit value. The 3 slots that used the dropped yellow
+      were replaced with combinations already proven valid earlier in
+      this same palette (lime, light pink, pale pink) — still 7 colors,
+      all traceable to a named reference color, all individually
+      contrast-checked.
+
+      **Pass 6:** swapped `avatar-olive`'s text from lime (5.16:1) to
+      white (7.61:1) by request — the app's stated allowance for
+      "occasional white" applies here; used once, not as a default.
+
+      **Pass 7: removed `avatar-pale-pink`, leaving `avatar-pink` as the
+      only pink.** Also fixed two corrupted entries found in the affected
+      file at the same time (an external edit had introduced `bg-`
+      prefixes where `text-` classes were needed — those wouldn't set text
+      color at all, they'd silently add a second, conflicting background
+      class instead). Palette is 6 colors now: green+lime, blue+ink-maroon,
+      purple+pink (4.85:1), olive+white, maroon+pink, pink+ink-maroon —
+      every pair reverified after the change. Also found (and restored)
+      the same corrupted-entry pattern reappearing once more in a later
+      pass, from an edit outside this session.
+
+      **Back button refined:** centered horizontally (dropped the
+      `self-start` override so it inherits the column's centering), added
+      `cursor-pointer`. First hover attempt tinted the background at 2%
+      white — kept contrast safe (4.6:1+ on every color) but turned out to
+      be visually imperceptible in practice. A plain visible fill (~10%
+      white) would drop 3 of 6 colors' button-text contrast below 4.5:1
+      (purple to 3.78:1), so instead of choosing between "invisible" and
+      "sometimes fails contrast," switched to a soft white glow
+      (`box-shadow`, 4px spread, 30% opacity) rendered just *outside* the
+      button's border. It's clearly visible and animates in over 200ms,
+      but since it never overlaps the text/background area, it can't
+      affect that pair's contrast at all — solves the actual conflict
+      instead of trading off between the two options.
+
+      **Reverted to a plain white fill by explicit user request** after
+      seeing the glow: the user preferred the literal "slightly white
+      background" they originally asked for, knowingly accepting the
+      contrast trade-off over the glow's zero-risk alternative. Final:
+      `hover:bg-white/10`, text color unaffected. This is now a known,
+      accepted exception — the button's *rest* state and its
+      `focus-visible` outline remain fully WCAG AA compliant on all 6
+      colors; only the transient, mouse-only hover fill drops button-text
+      contrast below 4.5:1 on 3 of 6 (purple, green, maroon backgrounds),
+      down to as low as ~3.8:1. Transition smoothed from 200ms `ease-out`
+      to `ease-in-out`, duration settled at 300ms after a follow-up
+      tweak (tried 500ms first, then dialed back).
 
 ## 6. Verify the result
 
