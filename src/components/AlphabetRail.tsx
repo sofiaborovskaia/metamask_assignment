@@ -271,7 +271,7 @@ const AlphabetRail = ({
     <nav
       ref={railWrapRef}
       aria-label="Jump to letter"
-      className={`fixed inset-y-0 flex w-7 touch-none overflow-hidden select-none ${className}`}
+      className={`fixed inset-y-0 mt-[60px] flex w-7 touch-none overflow-hidden select-none ${className}`}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
