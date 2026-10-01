@@ -46,6 +46,7 @@ One known limitation remains: below approximately 624px viewport height, some ra
 - Explore subtle haptic feedback on supported mobile devices, so moving across the rail produces a small physical response each time the active letter changes. This would remain a progressive enhancement, with complete visual feedback on unsupported devices.
 - Extract repeated visual patterns into clearer reusable components and design tokens.
 - Review the generated markup and component structure more deeply, removing unnecessary wrappers or ARIA and keeping the implementation as simple and semantic as the interaction allows.
+- Keep refining visual and interaction details: search bar interaction behaviour, empty states, scroll-linked highlighting and the A–Z rail.
 - Add targeted tests around the main journey.
 - Test the interface with a larger and more varied dataset, including long content, diacritics and missing fields.
 - Test with screen readers, physical touch devices, Safari and Firefox, then refine the interaction based on what those tests reveal.
